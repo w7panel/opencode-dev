@@ -1,0 +1,28 @@
+FROM debian:bookworm-slim
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    HOME=/home \
+    PATH=/opt/tools/bin:/opt/tools/go/bin:/root/.local/bin:$PATH \
+    GOPATH=/home/go \
+    GOROOT=/opt/tools/go
+
+RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources
+
+RUN apt-get update && apt-get install -y \
+    curl wget vim tzdata ca-certificates gnupg lsb-release procps zip unzip xz-utils \
+    fonts-noto-cjk jq python3 git
+
+COPY preinstall /opt/preinstall
+
+# DOCKERFILE_COMMANDS_PLACEHOLDER
+
+RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+
+COPY scripts/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+WORKDIR /home
+
+EXPOSE 4096
+
+ENTRYPOINT ["/entrypoint.sh"]

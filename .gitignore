@@ -1,0 +1,14 @@
+# 配置文件（用户自行创建）
+config.yaml
+kubeconfig.yaml
+
+# 构建产物
+Dockerfile
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# 系统文件
+.DS_Store
