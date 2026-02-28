@@ -56,6 +56,12 @@
       "version": "latest",
       "url": "https://www.npmjs.com/package/agent-browser",
       "install": "RUN npm install -g agent-browser"
+    },
+    {
+      "name": "ko",
+      "version": "0.18.1",
+      "url": "https://ghproxy.net/https://github.com/ko-build/ko/releases/download/v0.18.1/ko_0.18.1_Linux_x86_64.tar.gz",
+      "install": "RUN wget -q $URL -O /tmp/ko.tar.gz && tar -C /opt/tools/bin -xzf /tmp/ko.tar.gz ko && rm /tmp/ko.tar.gz"
     }
   ],
   "opencode": [
