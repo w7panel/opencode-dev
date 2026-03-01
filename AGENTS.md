@@ -44,14 +44,32 @@
 
 ### dockerfile 字段
 
-用于补充 Dockerfile 命令（如从镜像提取文件）。
+用于补充 Dockerfile 命令（如从镜像提取文件）。**可以直接使用 Dockerfile 原生指令**。
 
 | 字段 | 说明 | 必填 |
 |------|------|------|
 | name | 项目名称 | 是 |
-| commands | Dockerfile 命令列表 | 是 |
+| commands | Dockerfile 命令列表（如 RUN、COPY 等） | 是 |
+
+**使用场景**：
+- 从已有镜像中提取文件
+- 需要使用多阶段构建
+- 其他需要直接操作 Dockerfile 的场景
+
+**示例**：
+```json
+{
+  "name": "extract-files",
+  "commands": [
+    "FROM debian:bookworm-slim AS extractor",
+    "COPY --from=target /app /opt/app"
+  ]
+}
+```
 
 ### environment 字段
+
+用于安装可执行工具（如 kubectl、helm、node 等）。支持两种安装方式：
 
 | 字段 | 说明 | 必填 |
 |------|------|------|
@@ -60,7 +78,43 @@
 | url | 下载地址 | 是 |
 | install | 安装命令（使用 `$URL` 变量） | 是 |
 
+**安装方式**：
+
+1. **下载解压**（推荐）：使用 wget/curl 下载官方预编译包，解压到 `/opt/tools/bin/`
+2. **包管理器**：使用 npm/bunx/yarn/apt-get 等安装
+
+**使用场景**：
+- 安装有官方预编译二进制包的命令行工具：kubectl、helm、gh、node、golang 等
+- 使用包管理器安装：npm install、apt-get install 等
+
+**规范**：
+1. **下载解压方式**：必须使用 `$URL` 变量表示 url 字段的值
+2. **包管理器方式**：npm/bunx/yarn/apt-get 等直接安装，无需 $URL
+3. **软链接使用相对路径**：创建软链接时使用相对路径，禁止使用绝对路径
+
+**示例 - 下载解压**：
+```json
+{
+  "name": "kubectl",
+  "version": "1.31.0",
+  "url": "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl",
+  "install": "RUN wget -q $URL -O /opt/tools/bin/kubectl && chmod +x /opt/tools/bin/kubectl"
+}
+```
+
+**示例 - 包管理器**：
+```json
+{
+  "name": "opencode-ai",
+  "version": "latest",
+  "url": "https://www.npmjs.com/package/opencode-ai",
+  "install": "RUN npm install -g opencode-ai"
+}
+```
+
 ### opencode 字段
+
+用于安装 OpenCode 技能和扩展。
 
 | 字段 | 说明 | 必填 |
 |------|------|------|
@@ -68,6 +122,24 @@
 | url | Git 仓库地址 | 是 |
 | install_doc | 安装文档地址 | 否 |
 | install | 安装命令（使用 `$URL` 变量） | 是 |
+
+**使用场景**：
+- 安装 OpenCode 技能（如 superpowers、oh-my-opencode）
+- 安装 OpenCode 相关扩展
+
+**规范**：
+1. **必须使用 `$URL` 变量**：install 命令中必须使用 `$URL` 表示 url 字段的值
+2. **优先使用 install_doc**：如果有安装文档，读取文档内容提取安装命令
+
+**示例**：
+```json
+{
+  "name": "superpowers",
+  "url": "https://ghproxy.net/https://github.com/obra/superpowers",
+  "install_doc": "https://raw.githubusercontent.com/obra/superpowers/refs/heads/main/.opencode/INSTALL.md",
+  "install": "RUN git clone --depth 1 $URL /tmp/superpowers && mkdir -p /opt/preinstall/.config/opencode && cp -r /tmp/superpowers /opt/preinstall/.config/opencode/ && rm -rf /tmp/superpowers"
+}
+```
 
 ### 处理规则
 
@@ -114,6 +186,55 @@
 | nvcr.io | https://nvcr.m.daocloud.io |
 
 详细用法见 `docker-build` skill。
+
+## GitHub 加速代理
+
+由于 GitHub 在国内访问较慢，可以使用代理服务加速。以下是验证可用的代理服务：
+
+### 推荐代理（按优先级）
+
+| 优先级 | 代理地址 | 状态 |
+|--------|----------|------|
+| 1 | https://ghproxy.net/ | ⚠️ K8s 环境不稳定 |
+| 2 | https://gh-proxy.com/ | ✅ 可用 |
+| 3 | https://v6.gh-proxy.org/ | ✅ 可用 |
+| 4 | https://gh.ddlc.top/ | ✅ 可用 |
+| 5 | https://bgithub.xyz | ✅ 可用 |
+| 6 | https://gitclone.com | ✅ 可用 |
+| 7 | https://github.ur1.fun | ✅ 可用 |
+| 8 | https://fastgit.cc | ✅ 可用 |
+| 9 | https://gh.xxooo.cf/ | ✅ 可用 |
+| 10 | https://github.xxlab.tech/ | ✅ 可用 |
+
+### 使用方法
+
+将 GitHub 原始 URL 作为参数传递给代理：
+
+```bash
+# 格式
+https://<代理地址>/https://github.com/<用户名>/<仓库>
+
+# 示例
+https://ghproxy.net/https://github.com/obra/superpowers
+https://gh-proxy.com/https://github.com/cli/cli/releases/download/v2.63.2/gh_2.63.2_linux_amd64.tar.gz
+```
+
+### 在 preinstall.json 中的使用
+
+```json
+{
+  "name": "superpowers",
+  "url": "https://ghproxy.net/https://github.com/obra/superpowers",
+  "install": "RUN git clone --depth 1 $URL /tmp/superpowers && ..."
+}
+```
+
+### 注意事项
+
+1. **代理服务不稳定**：代理服务可能随时失效，使用前建议验证可用性
+2. **K8s 环境差异**：某些代理在本地可用但在 K8s Pod 内不可用（如 ghproxy.net）
+3. **优先使用官方源**：如网络条件允许，优先使用 GitHub 原始地址
+4. **构建检查跳过**：tools.sh 会跳过 ghproxy.net 等已知代理的 URL 检查
 
 ## 开发流程
 

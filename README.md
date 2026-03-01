@@ -18,8 +18,8 @@
 
 | 模式 | 条件 | 说明 |
 |------|------|------|
-| 本地构建 | 无 kubeconfig.yaml | 使用本地 kaniko 命令 |
-| K8s 构建 | 有 kubeconfig.yaml | 使用 Kaniko Job |
+| 本地构建 | 无 kubeconfig.yaml | 使用本地 buildah 命令 |
+| K8s 构建 | 有 kubeconfig.yaml | 使用 Buildah Job |
 
 ## 配置文件
 

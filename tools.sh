@@ -49,6 +49,40 @@ check_preinstall_spec() {
     local file="preinstall/preinstall.json"
     local has_error=0
 
+    # 动态检测并选择最稳定的 GitHub 代理
+    echo "=== 检测 GitHub 代理稳定性 ==="
+    local stable_proxy=""
+    # 使用 git clone 测试，因为有些代理只支持文件下载不支持 git clone
+    local test_repo="https://github.com/obra/superpowers"
+    local proxies=("ghproxy.net" "gh-proxy.com" "v6.gh-proxy.org" "gh.ddlc.top" "bgithub.xyz" "gitclone.com" "github.ur1.fun" "fastgit.cc" "gh.xxooo.cf" "github.xxlab.tech")
+    
+    for proxy in "${proxies[@]}"; do
+        local test_url="https://${proxy}/${test_repo}"
+        # 使用 git ls-remote 测试代理是否支持 git clone
+        local status=$(git ls-remote --heads "$test_url" >/dev/null 2>&1 && echo "200" || echo "failed")
+        if [ "$status" = "200" ]; then
+            echo "  [OK] https://${proxy}/ (支持 git clone)"
+            stable_proxy="$proxy"
+            break
+        else
+            echo "  [FAIL] https://${proxy}/ (不支持 git clone)"
+        fi
+    done
+    
+    if [ -z "$stable_proxy" ]; then
+        echo "  警告: 所有代理均不可用，使用默认代理 ghproxy.net"
+        stable_proxy="ghproxy.net"
+    else
+        echo "  选择最稳定代理: https://${stable_proxy}/"
+    fi
+    
+    # 替换 preinstall.json 中的 ghproxy.net 为稳定的代理
+    if [ -f "$file" ]; then
+        sed -i "s|https://ghproxy.net/|https://${stable_proxy}/|g" "$file"
+        echo "  已替换 preinstall.json 中的代理为: ${stable_proxy}"
+    fi
+    echo ""
+
     echo "=== 检查 preinstall.json 规范性 ==="
 
     # 检查所有 install 字段是否使用 $URL 变量（npm/bunx/yarn 等包管理器安装除外）
@@ -57,8 +91,8 @@ check_preinstall_spec() {
         local items=$(jq -r ".$type[]? | select(.install != null) | .name" "$file" 2>/dev/null)
         for name in $items; do
             local install_cmd=$(jq -r ".$type[]? | select(.name == \"$name\") | .install" "$file" 2>/dev/null)
-            # npm/bunx/yarn 等包管理器安装不需要 $URL
-            if [[ "$install_cmd" =~ ^(RUN[[:space:]]+)?(npm|bunx|bun|yarn|pnpm)[[:space:]] ]]; then
+            # npm/bunx/yarn/apt-get 等包管理器安装不需要 $URL
+            if [[ "$install_cmd" =~ ^(RUN[[:space:]]+)?(npm|bunx|bun|yarn|pnpm|apt-get)[[:space:]] ]]; then
                 echo "  [OK] $type.$name 使用包管理器安装，跳过 \$URL 检查"
                 continue
             fi
@@ -96,7 +130,7 @@ check_preinstall_spec() {
                 continue
             fi
             # ghproxy.net 等代理服务返回 403/000 是正常的，不影响实际下载
-            if [[ "$url" =~ ghproxy\.net|mirror\.ghproxy\.com ]]; then
+            if [[ "$url" =~ ghproxy\.net|mirror\.ghproxy\.com|gh-proxy\.com|v6\.gh-proxy\.org|gh\.ddlc\.top|bgithub\.xyz|gitclone\.com|github\.ur1\.fun|fastgit\.cc|gh\.xxooo\.cf|github\.xxlab\.tech ]]; then
                 echo "  [SKIP] $type.$name 的 url 使用代理服务，跳过检查: $url"
                 continue
             fi
@@ -159,12 +193,49 @@ prepare_dockerfile() {
     # 处理 opencode 类型，替换 $URL
     local opencode_cmds=$(jq -r '.opencode[] | "\(.url)|\(.install)"' preinstall/preinstall.json 2>/dev/null | awk -F'|' '{gsub(/\$URL/, $1); print $2}')
     
+    # 中国镜像源映射
+    local mirror_cmds='
+RUN sed -i "s|docker.io/library/|registry.cdn.w7.cc/library/|g" /etc/containerd/config.toml 2>/dev/null || true
+RUN sed -i "s|docker.io/|registry.cdn.w7.cc/|g" /etc/containers/registries.conf 2>/dev/null || true
+'
+    
     {
         head -n 17 Dockerfile.template
         echo
         
         # dockerfile 类型的 commands
         jq -r '.dockerfile[]?.commands[]?' preinstall/preinstall.json 2>/dev/null || true
+        
+        # 环境变量设置（解决 buildah 镜像源问题）
+        echo 'ENV BUILDAH_REGISTRIES_CONF=/etc/containers/registries.conf'
+        echo
+        
+        # 创建 registries.conf（中国镜像源）
+        # 使用 prefix 而不是 location 来匹配镜像前缀
+        echo 'RUN mkdir -p /etc/containers && cat > /etc/containers/registries.conf << "EOF"'
+        echo 'unqualified-search-registries = ["docker.io"]'
+        echo ''
+        echo '[[registry]]'
+        echo 'prefix = "docker.io"'
+        echo 'location = "registry.cdn.w7.cc"'
+        echo ''
+        echo '[[registry]]'
+        echo 'prefix = "gcr.io"'
+        echo 'location = "gcr.m.daocloud.io"'
+        echo ''
+        echo '[[registry]]'
+        echo 'prefix = "ghcr.io"'
+        echo 'location = "ghcr.m.daocloud.io"'
+        echo ''
+        echo '[[registry]]'
+        echo 'prefix = "quay.io"'
+        echo 'location = "quay.nju.edu.cn"'
+        echo ''
+        echo '[[registry]]'
+        echo 'prefix = "mcr.microsoft.com"'
+        echo 'location = "mcr.m.daocloud.io"'
+        echo 'EOF'
+        echo
         
         # environment 类型的 install (URL 已替换)
         echo "$env_cmds"
@@ -178,9 +249,9 @@ prepare_dockerfile() {
 
 # 本地构建
 build_local() {
-    if ! command -v kaniko &> /dev/null; then
-        echo "Error: kaniko 未安装"
-        echo "请先安装 kaniko: https://github.com/GoogleContainerTools/kaniko"
+    if ! command -v buildah &> /dev/null; then
+        echo "Error: buildah 未安装"
+        echo "请先安装 buildah: https://github.com/containers/buildah"
         exit 1
     fi
     
@@ -189,35 +260,16 @@ build_local() {
     echo "=== Build Image (Local) ==="
     echo "Image: ${IMAGE}"
     
-    # 创建认证配置
-    mkdir -p $SCRIPT_DIR/.docker
-    cat > $SCRIPT_DIR/.docker/config.json << EOF
-{
-  "auths": {
-    "${REGISTRY}": {
-      "username": "${REGISTRY_USER}",
-      "password": "${REGISTRY_PASS}"
-    }
-  },
-  "mirrors": [
-    "registry.cdn.w7.cc"
-  ]
-}
-EOF
+    # 登录仓库
+    buildah login --username ${REGISTRY_USER} --password ${REGISTRY_PASS} ${REGISTRY} 2>/dev/null || true
     
-    DOCKER_CONFIG=$SCRIPT_DIR/.docker kaniko \
-        -f Dockerfile \
-        -c dir://$SCRIPT_DIR \
-        -d ${IMAGE} \
-        --force \
-        --registry-map=index.docker.io=registry.cdn.w7.cc \
-        --registry-map=docker.io=registry.cdn.w7.cc \
-        --registry-map=gcr.io=gcr.m.daocloud.io \
-        --registry-map=ghcr.io=ghcr.m.daocloud.io \
-        --registry-map=k8s.gcr.io=k8s-gcr.m.daocloud.io \
-        --registry-map=registry.k8s.io=k8s.m.daocloud.io \
-        --registry-map=quay.io=quay.nju.edu.cn \
-        --registry-map=mcr.microsoft.com=mcr.m.daocloud.io
+    # 构建并推送
+    buildah bud \
+        --file Dockerfile \
+        --context dir://$SCRIPT_DIR \
+        --tag ${IMAGE} \
+        --registries-conf /dev/null \
+        --pull
     
     echo ""
     echo "========================================"
@@ -237,8 +289,9 @@ build_k8s() {
     
     # 清理旧的资源
     kubectl delete pod ${APP}-build -n $NS --ignore-not-found=true 2>/dev/null || true
+    sleep 2
     
-    # 创建临时 Pod（使用 debug 镜像，用 busybox sleep 保持运行）
+    # 1. 创建 Pod（使用 sleep infinity 保持运行）
     cat <<EOF | kubectl apply -n $NS -f -
 apiVersion: v1
 kind: Pod
@@ -247,68 +300,72 @@ metadata:
 spec:
   restartPolicy: Never
   containers:
-    - name: kaniko
-      image: gcr.io/kaniko-project/executor:debug
-      command: ["/busybox/sleep"]
-      args:
-        - infinity
+    - name: buildah
+      image: quay.io/buildah/stable:latest
+      command: ["/bin/sh", "-c", "sleep infinity"]
       volumeMounts:
         - name: workspace
           mountPath: /workspace
+      securityContext:
+        privileged: true
   volumes:
     - name: workspace
       emptyDir: {}
 EOF
 
-    # 等待 Pod 就绪
+    # 2. 等待 Pod 就绪
     echo "Waiting for pod..."
     kubectl wait --for=condition=Ready pod/${APP}-build -n $NS --timeout=120s || {
         kubectl describe pod ${APP}-build -n $NS
         exit 1
     }
 
-    # 复制文件到容器
+    # 3. 复制文件到容器
     echo "Copying files..."
     kubectl cp Dockerfile ${APP}-build:/workspace/Dockerfile -n $NS
     kubectl cp preinstall ${APP}-build:/workspace/ -n $NS
     kubectl cp scripts ${APP}-build:/workspace/ -n $NS
     
-    # 创建认证配置（使用 Docker 格式，v1 端点）
-    echo "Creating docker config..."
-    AUTH=$(echo -n "${REGISTRY_USER}:${REGISTRY_PASS}" | base64 -w0)
-    # 根据仓库类型选择端点格式
-    if [[ "$REGISTRY" == *"docker.io"* ]] || [[ "$REGISTRY" == *"index.docker.io"* ]]; then
-        REGISTRY_AUTH_URL="https://index.docker.io/v1/"
-    else
-        REGISTRY_AUTH_URL="${REGISTRY}"
-    fi
-    kubectl exec ${APP}-build -n $NS -- mkdir -p /workspace/.docker
-    kubectl exec ${APP}-build -n $NS -- /bin/sh -c "cat > /workspace/.docker/config.json << EOF
-{
-  \"auths\": {
-    \"${REGISTRY_AUTH_URL}\": {
-      \"auth\": \"${AUTH}\"
-    }
-  }
-}
-EOF"
+    # 4. 创建 registries.conf（中国镜像源）
+    # 使用 prefix 而不是 location 来匹配镜像前缀
+    echo "Creating registries.conf..."
+    kubectl exec ${APP}-build -n $NS -- mkdir -p /etc/containers
+    kubectl exec ${APP}-build -n $NS -- sh -c 'cat > /etc/containers/registries.conf << "EOF"
+unqualified-search-registries = ["docker.io"]
 
-    # 执行构建
+[[registry]]
+prefix = "docker.io"
+location = "registry.cdn.w7.cc"
+
+[[registry]]
+prefix = "gcr.io"
+location = "gcr.m.daocloud.io"
+
+[[registry]]
+prefix = "ghcr.io"
+location = "ghcr.m.daocloud.io"
+
+[[registry]]
+prefix = "quay.io"
+location = "quay.nju.edu.cn"
+
+[[registry]]
+prefix = "mcr.microsoft.com"
+location = "mcr.m.daocloud.io"
+EOF'
+
+    # 5. 登录镜像仓库
+    echo "Logging in to registry..."
+    kubectl exec ${APP}-build -n $NS -- buildah login --username ${REGISTRY_USER} --password ${REGISTRY_PASS} ${REGISTRY}
+
+    # 5. 执行构建（使用 registries.conf 配置镜像源）
     echo "Building..."
-    kubectl exec ${APP}-build -n $NS -- /bin/sh -c "DOCKER_CONFIG=/workspace/.docker /kaniko/executor \
-        --dockerfile=/workspace/Dockerfile \
-        --context=dir:///workspace/ \
-        --destination=${IMAGE} \
-        --registry-map=index.docker.io=registry.cdn.w7.cc \
-        --registry-map=docker.io=registry.cdn.w7.cc \
-        --registry-map=gcr.io=gcr.m.daocloud.io \
-        --registry-map=ghcr.io=ghcr.m.daocloud.io \
-        --registry-map=k8s.gcr.io=k8s-gcr.m.daocloud.io \
-        --registry-map=registry.k8s.io=k8s.m.daocloud.io \
-        --registry-map=quay.io=quay.nju.edu.cn \
-        --registry-map=mcr.microsoft.com=mcr.m.daocloud.io \
-        --registry-map=nvcr.io=nvcr.m.daocloud.io \
-        --insecure"
+    kubectl exec ${APP}-build -n $NS -- buildah bud \
+        --registries-conf /etc/containers/registries.conf \
+        --file /workspace/Dockerfile \
+        --tag ${IMAGE} \
+        --pull \
+        /workspace
     
     echo ""
     echo "========================================"
@@ -386,7 +443,7 @@ EOF
 logs() {
     case "$1" in
         build)
-            kubectl logs -n $NS -l job-name=${APP}-build -c kaniko -f
+            kubectl logs -n $NS ${APP}-build -f
             ;;
         app)
             kubectl logs -n $NS -l app=${APP} -f

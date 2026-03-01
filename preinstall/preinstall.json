@@ -1,13 +1,5 @@
 {
-  "dockerfile": [
-    {
-      "name": "kaniko",
-      "commands": [
-        "COPY --from=gcr.io/kaniko-project/executor:latest /kaniko/executor /opt/tools/bin/kaniko",
-        "RUN chmod +x /opt/tools/bin/kaniko"
-      ]
-    }
-  ],
+  "dockerfile": [],
   "environment": [
     {
       "name": "golang",
@@ -36,20 +28,20 @@
     {
       "name": "gh",
       "version": "2.63.2",
-      "url": "https://ghproxy.net/https://github.com/cli/cli/releases/download/v2.63.2/gh_2.63.2_linux_amd64.tar.gz",
+      "url": "https://gh-proxy.com/https://github.com/cli/cli/releases/download/v2.63.2/gh_2.63.2_linux_amd64.tar.gz",
       "install": "RUN wget -q $URL -O /tmp/gh.tar.gz && tar -C /tmp -xzf /tmp/gh.tar.gz && mv /tmp/gh_2.63.2_linux_amd64/bin/gh /opt/tools/bin/gh && rm -rf /tmp/gh.tar.gz /tmp/gh_2.63.2_linux_amd64"
     },
     {
       "name": "xray",
       "version": "1.8.6",
-      "url": "https://ghproxy.net/https://github.com/XTLS/Xray-core/releases/download/v1.8.6/Xray-linux-64.zip",
+      "url": "https://gh-proxy.com/https://github.com/XTLS/Xray-core/releases/download/v1.8.6/Xray-linux-64.zip",
       "install": "RUN wget -q $URL -O /tmp/xray.zip && unzip -o /tmp/xray.zip -d /opt/tools/bin/ && rm /tmp/xray.zip"
     },
     {
       "name": "opencode-ai",
       "version": "latest",
-      "url": "https://www.npmjs.com/package/opencode",
-      "install": "RUN npm install -g opencode"
+      "url": "https://www.npmjs.com/package/opencode-ai",
+      "install": "RUN npm install -g opencode-ai"
     },
     {
       "name": "agent-browser",
@@ -60,26 +52,26 @@
     {
       "name": "ko",
       "version": "0.18.1",
-      "url": "https://ghproxy.net/https://github.com/ko-build/ko/releases/download/v0.18.1/ko_0.18.1_Linux_x86_64.tar.gz",
-      "install": "RUN wget -q $URL -O /tmp/ko.tar.gz && tar -C /opt/tools/bin -xzf /tmp/ko.tar.gz ko && rm /tmp/ko.tar.gz"
+      "url": "https://gh-proxy.com/https://github.com/ko-build/ko/releases/download/v0.18.1/ko_0.18.1_Linux_x86_64.tar.gz",
+"install": "RUN wget -q $URL -O /tmp/ko.tar.gz && tar -C /opt/tools/bin -xzf /tmp/ko.tar.gz ko && rm /tmp/ko.tar.gz"
     },
     {
       "name": "buildah",
       "version": "1.37.3",
       "url": "https://packages.debian.org/bookworm/buildah",
-      "install": "RUN apt-get update && apt-get install -y buildah"
+      "install": "RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::=\"--force-confdef\" -o Dpkg::Options::=\"--force-confold\" install -y buildah || dpkg --configure -a"
     }
   ],
   "opencode": [
     {
       "name": "oh-my-opencode",
-      "url": "https://ghproxy.net/https://github.com/code-yeongyu/oh-my-opencode",
+      "url": "https://gh-proxy.com/https://github.com/code-yeongyu/oh-my-opencode",
       "install_doc": "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/refs/heads/master/docs/guide/installation.md",
-      "install": "RUN git clone --depth 1 $URL /tmp/oh-my-opencode && bunx oh-my-opencode install /tmp/oh-my-opencode && rm -rf /tmp/oh-my-opencode"
+      "install": "RUN npm install -g oh-my-opencode && oh-my-opencode install --no-tui --claude=no --openai=no --gemini=no --copilot=no"
     },
     {
       "name": "superpowers",
-      "url": "https://ghproxy.net/https://github.com/obra/superpowers",
+      "url": "https://gh-proxy.com/https://github.com/obra/superpowers",
       "install_doc": "https://raw.githubusercontent.com/obra/superpowers/refs/heads/main/.opencode/INSTALL.md",
       "install": "RUN git clone --depth 1 $URL /tmp/superpowers && mkdir -p /opt/preinstall/.config/opencode && cp -r /tmp/superpowers /opt/preinstall/.config/opencode/ && rm -rf /tmp/superpowers"
     }
