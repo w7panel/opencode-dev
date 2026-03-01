@@ -16,7 +16,10 @@ if [ -f config.yaml ]; then
     REGISTRY_PASS=$(grep '^registry_pass:' config.yaml | awk '{print $2}')
     IMAGE=$(grep '^image:' config.yaml | awk '{print $2}')
 fi
-
+# kubeconfig
+if [ -f kubeconfig.yaml ]; then
+    export KUBECONFIG=$SCRIPT_DIR/kubeconfig.yaml
+fi
 # kubeconfig
 if [ -f kubeconfig.yaml ]; then
     export KUBECONFIG=$SCRIPT_DIR/kubeconfig.yaml

@@ -31,6 +31,7 @@
       "url": "https://gh-proxy.com/https://github.com/cli/cli/releases/download/v2.63.2/gh_2.63.2_linux_amd64.tar.gz",
       "install": "wget -q $URL -O /tmp/gh.tar.gz && tar -C /tmp -xzf /tmp/gh.tar.gz && mv /tmp/gh_2.63.2_linux_amd64/bin/gh /opt/tools/bin/gh && rm -rf /tmp/gh.tar.gz /tmp/gh_2.63.2_linux_amd64"
     },
+    {
       "name": "opencode-ai",
       "version": "latest",
       "url": "https://www.npmjs.com/package/opencode-ai",
@@ -52,7 +53,7 @@
       "name": "buildah",
       "version": "1.37.3",
       "url": "https://packages.debian.org/bookworm/buildah",
-      "install": "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::=\"--force-confdef\" -o Dpkg::Options::=\"--force-confold\" install -y buildah || dpkg --configure -a"
+      "install": "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' buildah || dpkg --configure -a"
     }
   ],
   "opencode": [
