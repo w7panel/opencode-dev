@@ -32,10 +32,6 @@
       "install": "wget -q $URL -O /tmp/gh.tar.gz && tar -C /tmp -xzf /tmp/gh.tar.gz && mv /tmp/gh_2.63.2_linux_amd64/bin/gh /opt/tools/bin/gh && rm -rf /tmp/gh.tar.gz /tmp/gh_2.63.2_linux_amd64"
     },
     {
-      "name": "xray",
-      "version": "1.8.6",
-      "url": "https://gh-proxy.com/https://github.com/XTLS/Xray-core/releases/download/v1.8.6/Xray-linux-64.zip",
-      "install": "wget -q $URL -O /tmp/xray.zip && unzip -o /tmp/xray.zip -d /opt/tools/bin/ && rm /tmp/xray.zip"
     },
     {
       "name": "opencode-ai",
