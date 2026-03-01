@@ -1,6 +1,7 @@
 # 配置文件（用户自行创建）
 config.yaml
 kubeconfig.yaml
+gitconfig.yaml
 
 # 构建产物
 Dockerfile
