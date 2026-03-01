@@ -167,7 +167,7 @@ prepare_dockerfile() {
     # 复制 OpenCode skills 到 preinstall/.config/opencode/
     if [ -d ".opencode/skills" ]; then
         mkdir -p preinstall/.config/opencode
-        cp -r .opencode/skills/* preinstall/.config/opencode/ 2>/dev/null || true
+        cp -r .opencode/skills preinstall/.config/opencode/ 2>/dev/null || true
         echo "已复制 .opencode/skills 到 preinstall/.config/opencode/"
     fi
     
