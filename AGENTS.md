@@ -213,6 +213,11 @@
    - `preinstall/` 目录整个 COPY 到镜像的 `/opt/preinstall/`
    - 容器启动时由 entrypoint.sh 复制到 `/home/`
 
+7. **OpenCode Skills 处理**
+   - 复制 `.opencode/skills/` 到 `preinstall/.config/.opencode/skills/`
+   - 构建时将此目录 COPY 到镜像的 `/opt/preinstall/.config/.opencode/`
+   - 容器启动时复制到 `/home/.config/opencode/`
+
 ## 中国镜像源
 
 由于 Docker Hub 和 GCR 在国内无法访问，构建时必须使用镜像源：
