@@ -10,7 +10,7 @@ RUN sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debia
 
 RUN apt-get update && apt-get install -y \
     curl wget vim tzdata ca-certificates gnupg lsb-release procps zip unzip xz-utils \
-    fonts-noto-cjk jq python3 git
+    fonts-noto-cjk jq python3 git make
 
 COPY preinstall /opt/preinstall
 
