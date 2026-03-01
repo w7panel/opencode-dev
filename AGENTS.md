@@ -14,7 +14,7 @@
 
 以下文件的修改**必须经过用户同意后才能执行**：
 - Dockerfile.template（Dockerfile 模板）
-- tools.sh（构建脚本）
+- Makefile（构建脚本）
 - config.yaml（配置文件）
 - kubeconfig.yaml（K8s 配置）
 
@@ -89,7 +89,7 @@
 
 **规范**：
 1. **禁止使用 RUN**：install 字段只能填写安装命令，禁止使用 RUN、COPY 等 Dockerfile 指令
-2. **脚本自动拼接**：tools.sh 生成 Dockerfile 时会自动拼接 `RUN` 前缀
+2. **脚本自动拼接**：Makefile 生成 Dockerfile 时会自动拼接 `RUN` 前缀
 3. **下载解压方式**：必须使用 `$URL` 变量表示 url 字段的值
 4. **包管理器方式**：npm/bunx/yarn/apt-get 等直接安装，无需 $URL
 5. **软链接使用相对路径**：创建软链接时使用相对路径，禁止使用绝对路径
@@ -141,7 +141,7 @@
 
 **规范**：
 1. **禁止使用 RUN**：install 字段只能填写安装命令，禁止使用 RUN、COPY 等 Dockerfile 指令
-2. **脚本自动拼接**：tools.sh 生成 Dockerfile 时会自动拼接 `RUN` 前缀
+2. **脚本自动拼接**：Makefile 生成 Dockerfile 时会自动拼接 `RUN` 前缀
 3. **必须使用 `$URL` 变量**：install 命令中必须使用 `$URL` 表示 url 字段的值
 4. **优先使用 install_doc**：如果有安装文档，读取文档内容提取安装命令
 
@@ -284,7 +284,7 @@ https://gh-proxy.com/https://github.com/cli/cli/releases/download/v2.63.2/gh_2.6
 1. **代理服务不稳定**：代理服务可能随时失效，使用前建议验证可用性
 2. **K8s 环境差异**：某些代理在本地可用但在 K8s Pod 内不可用（如 ghproxy.net）
 3. **优先使用官方源**：如网络条件允许，优先使用 GitHub 原始地址
-4. **构建检查跳过**：tools.sh 会跳过 ghproxy.net 等已知代理的 URL 检查
+4. **构建检查跳过**：Makefile 会跳过 ghproxy.net 等已知代理的 URL 检查
 
 ## 开发流程
 
@@ -292,17 +292,17 @@ https://gh-proxy.com/https://github.com/cli/cli/releases/download/v2.63.2/gh_2.6
 
 ```bash
 # 1. 构建
-./tools.sh build
+./Makefile build
 
 # 2. 部署
-./tools.sh deploy
+./Makefile deploy
 
 # 3. 测试
-./tools.sh logs app
-./tools.sh exec
+./Makefile logs app
+./Makefile exec
 
 # 4. 清理（重要！）
-./tools.sh clean
+./Makefile clean
 ```
 
 > **注意**：每次测试完成后必须执行 `clean` 清理资源，避免占用集群资源。
@@ -366,5 +366,5 @@ proxy: http://clash-vicwgrdz.default.svc.cluster.local:7890
 
 **注意**：
 - 此文件包含敏感信息，**必须**添加到 `.gitignore`
-- tools.sh 会读取此文件配置 Git 代理和认证
+- Makefile 会读取此文件配置 Git 代理和认证
 - 首次使用需手动创建此文件
