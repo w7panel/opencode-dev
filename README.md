@@ -5,11 +5,11 @@
 ## 快速开始
 
 ```bash
-./tools.sh build    # 构建镜像
-./tools.sh deploy   # 部署应用
-./tools.sh exec     # 进入容器
-./tools.sh logs app # 查看日志
-./tools.sh clean    # 清理资源
+make build    # 构建镜像
+make deploy   # 部署应用
+make exec     # 进入容器
+make logs     # 查看日志
+make clean    # 清理资源
 ```
 
 ## 构建模式
@@ -42,7 +42,7 @@ image: <完整镜像地址>
 opencode-dev/
 ├── .gitignore            # Git 忽略配置
 ├── Dockerfile.template  # Docker 镜像模板
-├── tools.sh            # 统一工具脚本
+├── Makefile            # 统一工具脚本
 ├── AGENTS.md           # 开发规范
 ├── preinstall/
 │   └── preinstall.json # 预装清单
