@@ -69,7 +69,7 @@
 
 ### environment 字段
 
-用于安装可执行工具（如 kubectl、helm、node 等）。支持两种安装方式：
+用于安装可执行工具（如 kubectl、helm、node 等）。**不支持 Dockerfile 原生指令，只能填写安装命令**，脚本会自动拼接 RUN 指令。
 
 | 字段 | 说明 | 必填 |
 |------|------|------|
@@ -88,9 +88,11 @@
 - 使用包管理器安装：npm install、apt-get install 等
 
 **规范**：
-1. **下载解压方式**：必须使用 `$URL` 变量表示 url 字段的值
-2. **包管理器方式**：npm/bunx/yarn/apt-get 等直接安装，无需 $URL
-3. **软链接使用相对路径**：创建软链接时使用相对路径，禁止使用绝对路径
+1. **禁止使用 RUN**：install 字段只能填写安装命令，禁止使用 RUN、COPY 等 Dockerfile 指令
+2. **脚本自动拼接**：tools.sh 生成 Dockerfile 时会自动拼接 `RUN` 前缀
+3. **下载解压方式**：必须使用 `$URL` 变量表示 url 字段的值
+4. **包管理器方式**：npm/bunx/yarn/apt-get 等直接安装，无需 $URL
+5. **软链接使用相对路径**：创建软链接时使用相对路径，禁止使用绝对路径
 
 **示例 - 下载解压**：
 ```json
@@ -98,7 +100,7 @@
   "name": "kubectl",
   "version": "1.31.0",
   "url": "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl",
-  "install": "RUN wget -q $URL -O /opt/tools/bin/kubectl && chmod +x /opt/tools/bin/kubectl"
+  "install": "wget -q $URL -O /opt/tools/bin/kubectl && chmod +x /opt/tools/bin/kubectl"
 }
 ```
 
@@ -108,7 +110,48 @@
   "name": "opencode-ai",
   "version": "latest",
   "url": "https://www.npmjs.com/package/opencode-ai",
-  "install": "RUN npm install -g opencode-ai"
+  "install": "npm install -g opencode-ai"
+}
+```
+
+**示例 - apt-get**：
+```json
+{
+  "name": "buildah",
+  "version": "1.37.3",
+  "url": "https://packages.debian.org/bookworm/buildah",
+  "install": "apt-get update && apt-get install -y buildah"
+}
+```
+
+### opencode 字段
+
+用于安装 OpenCode 技能和扩展。**不支持 Dockerfile 原生指令，只能填写安装命令**，脚本会自动拼接 RUN 指令。
+
+| 字段 | 说明 | 必填 |
+|------|------|------|
+| name | 项目名称 | 是 |
+| url | Git 仓库地址 | 是 |
+| install_doc | 安装文档地址 | 否 |
+| install | 安装命令（使用 `$URL` 变量） | 是 |
+
+**使用场景**：
+- 安装 OpenCode 技能（如 superpowers、oh-my-opencode）
+- 安装 OpenCode 相关扩展
+
+**规范**：
+1. **禁止使用 RUN**：install 字段只能填写安装命令，禁止使用 RUN、COPY 等 Dockerfile 指令
+2. **脚本自动拼接**：tools.sh 生成 Dockerfile 时会自动拼接 `RUN` 前缀
+3. **必须使用 `$URL` 变量**：install 命令中必须使用 `$URL` 表示 url 字段的值
+4. **优先使用 install_doc**：如果有安装文档，读取文档内容提取安装命令
+
+**示例**：
+```json
+{
+  "name": "superpowers",
+  "url": "https://ghproxy.net/https://github.com/obra/superpowers",
+  "install_doc": "https://raw.githubusercontent.com/obra/superpowers/refs/heads/main/.opencode/INSTALL.md",
+  "install": "git clone --depth 1 $URL /tmp/superpowers && mkdir -p /opt/preinstall/.config/opencode && cp -r /tmp/superpowers /opt/preinstall/.config/opencode/ && rm -rf /tmp/superpowers"
 }
 ```
 
@@ -225,7 +268,7 @@ https://gh-proxy.com/https://github.com/cli/cli/releases/download/v2.63.2/gh_2.6
 {
   "name": "superpowers",
   "url": "https://ghproxy.net/https://github.com/obra/superpowers",
-  "install": "RUN git clone --depth 1 $URL /tmp/superpowers && ..."
+  "install": "git clone --depth 1 $URL /tmp/superpowers && ..."
 }
 ```
 

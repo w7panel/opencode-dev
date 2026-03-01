@@ -237,11 +237,11 @@ RUN sed -i "s|docker.io/|registry.cdn.w7.cc/|g" /etc/containers/registries.conf 
         echo 'EOF'
         echo
         
-        # environment 类型的 install (URL 已替换)
-        echo "$env_cmds"
+        # environment 类型的 install (URL 已替换)，添加 RUN 前缀
+        echo "$env_cmds" | sed 's/^/RUN /'
         
-        # opencode 类型的 install (URL 已替换)
-        echo "$opencode_cmds"
+        # opencode 类型的 install (URL 已替换)，添加 RUN 前缀
+        echo "$opencode_cmds" | sed 's/^/RUN /'
         
         tail -n +19 Dockerfile.template
     } > Dockerfile
