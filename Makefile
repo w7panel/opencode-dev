@@ -1,6 +1,6 @@
 # OpenCode Dev Environment Makefile
 
-NS ?= opencode-dev
+NS ?= default
 APP ?= opencode-dev
 PORT ?= 4096
 
@@ -13,8 +13,6 @@ REGISTRIES_CONF := config/registries.conf
 K8S_POD_CONFIG := config/k8s-pod.yaml
 K8S_DEPLOY_CONFIG := config/k8s-deploy.yaml
 DOCKERFILE_TEMPLATE := config/Dockerfile.template
-K8S_POD_CONFIG := config/k8s-pod.yaml
-K8S_DEPLOY_CONFIG := config/k8s-deploy.yaml
 
 .PHONY: all
 all: help
@@ -61,45 +59,29 @@ copy-skills:
 prepare-dockefile: check-config check-preinstall check-registries copy-skills
 	@echo "=== Generating Dockerfile ==="
 	@head -n 17 $(DOCKERFILE_TEMPLATE) > Dockerfile
-	@echo "" >> Dockerfile
-	@jq -r '.dockerfile[]?.commands[]?' preinstall/preinstall.json 2>/dev/null >> Dockerfile
-	@echo "" >> Dockerfile
-	@for item in $$(jq -c '.environment[]' preinstall/preinstall.json 2>/dev/null); do \
-		url=$$(echo "$$item" | jq -r '.url'); \
-		install=$$(echo "$$item" | jq -r '.install'); \
-		if [ -n "$$install" ]; then \
-			echo "$$install" | sed "s#\$$URL#$$url#g" >> Dockerfile; \
-		fi; \
-	done
-	@echo "" >> Dockerfile
-	@for item in $$(jq -c '.opencode[]' preinstall/preinstall.json 2>/dev/null); do \
-		url=$$(echo "$$item" | jq -r '.url'); \
-		install=$$(echo "$$item" | jq -r '.install'); \
-		if [ -n "$$install" ]; then \
-			echo "$$install" | sed "s#\$$URL#$$url#g" >> Dockerfile; \
-		fi; \
-	done
+	@bash scripts/generate-dockefile.sh preinstall/preinstall.json Dockerfile
 	@tail -n +19 $(DOCKERFILE_TEMPLATE) >> Dockerfile
 
 # =======================
 # 本地构建
 # =======================
-build-local: prepare-dockefile
+build-local: check-config prepare-dockefile
 	@echo "=== Build Image (Local) ==="
 	@echo "Image: $(IMAGE)"
 	@(which buildah >/dev/null 2>&1 || (echo "Error: buildah not installed" && exit 1))
 	@buildah login --username $(REGISTRY_USER) --password $(REGISTRY_PASS) $(REGISTRY) 2>/dev/null || true
 	@buildah bud -f Dockerfile -t $(IMAGE) --pull .
+	@buildah push $(IMAGE)
 	@echo ""
 	@echo "========================================"
-	@echo "Build successful!"
+	@echo "Build and push successful!"
 	@echo "Image: $(IMAGE)"
 	@echo "========================================"
 
 # =======================
 # K8s 构建
 # =======================
-build-k8s: prepare-dockefile
+build-k8s: check-config prepare-dockefile
 	@echo "=== Build Image (K8s) ==="
 	@echo "Image: $(IMAGE)"
 	@export KUBECONFIG=$$(pwd)/kubeconfig.yaml
@@ -121,9 +103,11 @@ build-k8s: prepare-dockefile
 	@kubectl exec $(APP)-build -n $(NS) -- buildah login --username $(REGISTRY_USER) --password $(REGISTRY_PASS) $(REGISTRY)
 	@echo "Building..."
 	@kubectl exec $(APP)-build -n $(NS) -- buildah bud --registries-conf /etc/containers/registries.conf --file /workspace/Dockerfile --tag $(IMAGE) --pull /workspace
+	@echo "Pushing..."
+	@kubectl exec $(APP)-build -n $(NS) -- buildah push $(IMAGE)
 	@echo ""
 	@echo "========================================"
-	@echo "Build successful!"
+	@echo "Build and push successful!"
 	@echo "Image: $(IMAGE)"
 	@echo "========================================"
 
