@@ -1,9 +1,11 @@
 #!/bin/bash
 # Generate Dockerfile from preinstall.json and template
+# Replace placeholder "# DOCKERFILE_COMMANDS_PLACEHOLDER" with generated RUN commands
 
 PREINSTALL_JSON="${1:-preinstall/preinstall.json}"
 DOCKERFILE_TEMPLATE="${2:-config/Dockerfile.template}"
 OUTPUT_DOCKERFILE="${3:-Dockerfile}"
+COMMANDS_FILE="/tmp/commands_$$"
 
 # Check if template exists
 if [ ! -f "$DOCKERFILE_TEMPLATE" ]; then
@@ -11,27 +13,48 @@ if [ ! -f "$DOCKERFILE_TEMPLATE" ]; then
     exit 1
 fi
 
-# Start with the template
-cp "$DOCKERFILE_TEMPLATE" "$OUTPUT_DOCKERFILE"
+# Generate RUN commands from preinstall.json
+> "$COMMANDS_FILE"
 
-# Process dockerfile field (commands array)
+# 1. Process dockerfile field - direct commands
 if jq -e '.dockerfile | length > 0' "$PREINSTALL_JSON" >/dev/null 2>&1; then
-    COMMANDS=$(jq -r '.dockerfile[].commands[]?' "$PREINSTALL_JSON" 2>/dev/null)
-    if [ -n "$COMMANDS" ]; then
-        # Replace placeholder with dockerfile commands
-        sed -i "s/# DOCKERFILE_COMMANDS_PLACEHOLDER/$COMMANDS/" "$OUTPUT_DOCKERFILE"
-    else
-        # Remove placeholder if no commands
-        sed -i '/# DOCKERFILE_COMMANDS_PLACEHOLDER/d' "$OUTPUT_DOCKERFILE"
+    DF_COMMANDS=$(jq -r '.dockerfile[].commands[]?' "$PREINSTALL_JSON" 2>/dev/null)
+    if [ -n "$DF_COMMANDS" ]; then
+        echo "$DF_COMMANDS" >> "$COMMANDS_FILE"
     fi
-else
-    # Remove placeholder if no dockerfile section
-    sed -i '/# DOCKERFILE_COMMANDS_PLACEHOLDER/d' "$OUTPUT_DOCKERFILE"
 fi
 
-# Process environment and opencode entries - append after dockerfile commands
-jq -r '[.environment[], .opencode[]][] | select(.install != null) | "\(.url)|\(.install)"' "$PREINSTALL_JSON" 2>/dev/null | while IFS='|' read -r url install; do
+# 2. Process environment field - install commands with $URL replacement
+ENV_COMMANDS=$(jq -r '.environment[]? // [] | select(.install != null) | "\(.url)|\(.install)"' "$PREINSTALL_JSON" 2>/dev/null)
+while IFS='|' read -r url install; do
     if [ -n "$install" ]; then
-        echo "RUN $install" | sed "s|\$URL|$url|g" >> "$OUTPUT_DOCKERFILE"
+        RUN_CMD=$(echo "$install" | sed "s|\$URL|$url|g")
+        echo "RUN $RUN_CMD" >> "$COMMANDS_FILE"
     fi
-done
+done <<< "$ENV_COMMANDS"
+
+# 3. Process opencode field - install commands with $URL replacement
+OC_COMMANDS=$(jq -r '.opencode[]? // [] | select(.install != null) | "\(.url)|\(.install)"' "$PREINSTALL_JSON" 2>/dev/null)
+while IFS='|' read -r url install; do
+    if [ -n "$install" ]; then
+        RUN_CMD=$(echo "$install" | sed "s|\$URL|$url|g")
+        echo "RUN $RUN_CMD" >> "$COMMANDS_FILE"
+    fi
+done <<< "$OC_COMMANDS"
+
+# Replace placeholder in template with generated commands
+if [ -s "$COMMANDS_FILE" ]; then
+    # Read template, find placeholder, and insert commands
+    while IFS= read -r line || [ -n "$line" ]; do
+        if [ "$line" = "# DOCKERFILE_COMMANDS_PLACEHOLDER" ]; then
+            cat "$COMMANDS_FILE"
+        else
+            echo "$line"
+        fi
+    done < "$DOCKERFILE_TEMPLATE" > "$OUTPUT_DOCKERFILE"
+else
+    # Remove placeholder if no commands
+    sed '/# DOCKERFILE_COMMANDS_PLACEHOLDER/d' "$DOCKERFILE_TEMPLATE" > "$OUTPUT_DOCKERFILE"
+fi
+
+rm -f "$COMMANDS_FILE"
