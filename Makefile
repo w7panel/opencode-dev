@@ -12,6 +12,9 @@ KUBECONFIG_EXISTS := $(shell [ -f kubeconfig.yaml ] && echo "yes" || echo "no")
 REGISTRIES_CONF := config/registries.conf
 K8S_POD_CONFIG := config/k8s-pod.yaml
 K8S_DEPLOY_CONFIG := config/k8s-deploy.yaml
+DOCKERFILE_TEMPLATE := config/Dockerfile.template
+K8S_POD_CONFIG := config/k8s-pod.yaml
+K8S_DEPLOY_CONFIG := config/k8s-deploy.yaml
 
 .PHONY: all
 all: help
@@ -57,7 +60,7 @@ copy-skills:
 # =======================
 prepare-dockefile: check-config check-preinstall check-registries copy-skills
 	@echo "=== Generating Dockerfile ==="
-	@head -n 17 Dockerfile.template > Dockerfile
+	@head -n 17 $(DOCKERFILE_TEMPLATE) > Dockerfile
 	@echo "" >> Dockerfile
 	@jq -r '.dockerfile[]?.commands[]?' preinstall/preinstall.json 2>/dev/null >> Dockerfile
 	@echo "" >> Dockerfile
@@ -76,7 +79,7 @@ prepare-dockefile: check-config check-preinstall check-registries copy-skills
 			echo "$$install" | sed "s#\$$URL#$$url#g" >> Dockerfile; \
 		fi; \
 	done
-	@tail -n +19 Dockerfile.template >> Dockerfile
+	@tail -n +19 $(DOCKERFILE_TEMPLATE) >> Dockerfile
 
 # =======================
 # 本地构建
