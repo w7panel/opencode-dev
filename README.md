@@ -1,7 +1,6 @@
 # OpenCode Dev Environment
 
-#ZP|OpenCode Dev Environment 是一个基于 Debian Bookworm 的容器化开发环境，专门为 OpenCode AI 助手构建。预装 Go、Node.js、kubectl、helm、gh、opencode-ai 等开发工具，并支持 OpenCode Skills 扩展。
-## 快速开始
+OpenCode Dev Environment 是一个基于 Debian Bookworm 的容器化开发环境，专门为 OpenCode AI 助手构建。预装 Go、Node.js、kubectl、helm、gh、opencode-ai 等开发工具，并支持 OpenCode Skills 扩展。
 
 ```bash
 make build    # 构建镜像
