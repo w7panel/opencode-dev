@@ -1,0 +1,38 @@
+# K8s Deployment 配置
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${APP}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ${APP}
+  template:
+    metadata:
+      labels:
+        app: ${APP}
+    spec:
+      containers:
+        - name: ${APP}
+          image: ${IMAGE}
+          ports:
+            - containerPort: ${PORT}
+          volumeMounts:
+            - name: home
+              mountPath: /home
+      volumes:
+        - name: home
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${APP}
+spec:
+  type: ClusterIP
+  selector:
+    app: ${APP}
+  ports:
+    - port: ${PORT}
+      targetPort: ${PORT}
