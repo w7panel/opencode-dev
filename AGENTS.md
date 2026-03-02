@@ -18,8 +18,6 @@
 2. 新增配置文件 → 更新 Makefile 变量定义和 help 说明
 3. 修改构建流程 → 更新 AGENTS.md 相关规范
 
-当项目发生变动时（新增预装内容、修改构建流程等），必须同步更新相关文档和规则。
-
 ## 修改审批规则
 
 以下文件的修改**必须经过用户同意后才能执行**：
@@ -28,16 +26,6 @@
 - config.yaml（配置文件）
 - kubeconfig.yaml（K8s 配置）
 - config/ 目录下所有配置文件
-
-未经同意，不得擅自修改上述文件。
-
-## 预装内容
-
-以下文件的修改**必须经过用户同意后才能执行**：
-- Dockerfile.template（Dockerfile 模板）
-- Makefile（构建脚本）
-- config.yaml（配置文件）
-- kubeconfig.yaml（K8s 配置）
 
 未经同意，不得擅自修改上述文件。
 

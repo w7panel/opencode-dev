@@ -41,22 +41,6 @@ image: <完整镜像地址>
 ```
 opencode-dev/
 ├── .gitignore            # Git 忽略配置
-├── Makefile             # 统一工具脚本
-├── AGENTS.md            # 开发规范
-├── config/              # 配置文件
-│   ├── Dockerfile.template  # Docker 镜像模板
-│   ├── registries.conf     # Buildah 镜像源配置
-│   ├── k8s-pod.yaml        # K8s Build Pod 模板
-│   └── k8s-deploy.yaml     # K8s Deploy 模板
-├── preinstall/
-│   └── preinstall.json  # 预装清单
-└── scripts/
-    └── entrypoint.sh   # 启动脚本
-```
-
-```
-opencode-dev/
-├── .gitignore            # Git 忽略配置
 ├── Dockerfile.template  # Docker 镜像模板
 ├── Makefile            # 统一工具脚本
 ├── AGENTS.md           # 开发规范
