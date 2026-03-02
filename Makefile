@@ -58,9 +58,7 @@ copy-skills:
 # =======================
 prepare-dockefile: check-config check-preinstall check-registries copy-skills
 	@echo "=== Generating Dockerfile ==="
-	@head -n 17 $(DOCKERFILE_TEMPLATE) > Dockerfile
-	@bash scripts/generate-dockefile.sh preinstall/preinstall.json Dockerfile
-	@tail -n +19 $(DOCKERFILE_TEMPLATE) >> Dockerfile
+	@bash scripts/generate-dockefile.sh preinstall/preinstall.json $(DOCKERFILE_TEMPLATE) Dockerfile
 
 # =======================
 # 本地构建

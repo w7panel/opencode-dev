@@ -60,7 +60,8 @@
     {
       "name": "oh-my-opencode",
       "url": "https://gh-proxy.com/https://github.com/code-yeongyu/oh-my-opencode",
-      #KM|      "install": "npm install -g oh-my-opencode && oh-my-opencode install --no-tui --claude=no --openai=no --gemini=no --copilot=no || true"
+      "install_doc": "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/refs/heads/master/docs/guide/installation.md",
+      "install": "npm install -g oh-my-opencode && oh-my-opencode install --no-tui --claude=no --openai=no --gemini=no --copilot=no || true"
     },
     {
       "name": "superpowers",
