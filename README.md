@@ -107,3 +107,17 @@ make exec
 |------|--------|------|
 | PORT | 4096 | 服务端口 |
 | NS | default | K8s 命名空间 |
+
+### 持久化存储
+
+`/home` 目录为工作目录，建议挂载 PVC 进行持久化：
+
+```yaml
+volumeMounts:
+  - name: home
+    mountPath: /home
+volumes:
+  - name: home
+    persistentVolumeClaim:
+      claimName: opencode-dev-home
+```
