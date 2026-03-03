@@ -35,13 +35,13 @@
       "name": "opencode-ai",
       "version": "latest",
       "url": "https://www.npmjs.com/package/opencode-ai",
-      "install": "npm install -g opencode-ai"
+      "install": "npm install --production -g opencode-ai"
     },
     {
       "name": "agent-browser",
       "version": "latest",
       "url": "https://www.npmjs.com/package/agent-browser",
-      "install": "npm install -g agent-browser"
+      "install": "npm install --production -g agent-browser"
     },
     {
       "name": "ko",
@@ -61,7 +61,7 @@
       "name": "oh-my-opencode",
       "url": "https://gh-proxy.com/https://github.com/code-yeongyu/oh-my-opencode",
       "install_doc": "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/refs/heads/master/docs/guide/installation.md",
-      "install": "npm install -g oh-my-opencode && oh-my-opencode install --no-tui --claude=no --openai=no --gemini=no --copilot=no || true"
+      "install": "npm install --production -g oh-my-opencode && oh-my-opencode install --no-tui --claude=no --openai=no --gemini=no --copilot=no || true"
     },
     {
       "name": "superpowers",
