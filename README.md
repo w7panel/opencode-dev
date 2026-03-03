@@ -1,6 +1,7 @@
 # OpenCode Dev Environment
 
 OpenCode Dev Environment 是一个基于 Debian Bookworm 的容器化开发环境，专门为 OpenCode AI 助手构建。预装 Go、Node.js、kubectl、helm、gh、opencode-ai 等开发工具，并支持 OpenCode Skills 扩展。
+
 ## 快速开始
 
 ```bash
@@ -53,15 +54,17 @@ opencode-dev/
 └── scripts/
     └── entrypoint.sh   # 启动脚本
 ```
+
 ## 预装配置
 
 预装内容通过 `preinstall/preinstall.json` 管理：
 
 - **dockerfile**：补充 Dockerfile 命令（如 COPY --from）
 - **environment**：基础环境工具（Go、Node.js、kubectl 等）
-PX|- **opencode**：OpenCode 生态项目（插件、Skills）
+- **opencode**：OpenCode 生态项目（插件、Skills）
 
 详见 AGENTS.md
+
 ## 部署应用
 
 ### 直接使用预构建镜像
@@ -104,5 +107,3 @@ make exec
 |------|--------|------|
 | PORT | 4096 | 服务端口 |
 | NS | default | K8s 命名空间 |
-
-
