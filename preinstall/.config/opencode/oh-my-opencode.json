@@ -2,19 +2,16 @@
   "$schema": "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json",
   "agents": {
     "sisyphus": {
-      "model": "opencode/claude-opus-4-5",
-      "variant": "max"
+      "model": "opencode/big-pickle"
     },
     "hephaestus": {
-      "model": "opencode/gpt-5.2",
-      "variant": "high"
+      "model": "opencode/big-pickle"
     },
     "oracle": {
-      "model": "opencode/gpt-5.2",
-      "variant": "high"
+      "model": "opencode/big-pickle"
     },
     "librarian": {
-      "model": "opencode/big-pickle"
+      "model": "opencode/gpt-5-nano"
     },
     "explore": {
       "model": "opencode/gpt-5-nano"
@@ -23,12 +20,10 @@
       "model": "opencode/gpt-5-nano"
     },
     "prometheus": {
-      "model": "opencode/claude-opus-4-5",
-      "variant": "max"
+      "model": "opencode/gpt-5-nano"
     },
     "metis": {
-      "model": "opencode/claude-opus-4-5",
-      "variant": "max"
+      "model": "opencode/big-pickle"
     },
     "momus": {
       "model": "opencode/gpt-5-nano"
@@ -39,20 +34,16 @@
   },
   "categories": {
     "visual-engineering": {
-      "model": "opencode/gpt-5.2",
-      "variant": "high"
+      "model": "opencode/big-pickle"
     },
     "ultrabrain": {
-      "model": "opencode/claude-opus-4-5",
-      "variant": "max"
+      "model": "opencode/big-pickle"
     },
     "deep": {
-      "model": "opencode/claude-opus-4-5",
-      "variant": "high"
+      "model": "opencode/big-pickle"
     },
     "artistry": {
-      "model": "opencode/gpt-5.2",
-      "variant": "high"
+      "model": "opencode/big-pickle"
     },
     "quick": {
       "model": "opencode/gpt-5-nano"
@@ -61,7 +52,7 @@
       "model": "opencode/gpt-5-nano"
     },
     "unspecified-high": {
-      "model": "opencode/claude-opus-4-5"
+      "model": "opencode/big-pickle"
     },
     "writing": {
       "model": "opencode/gpt-5-nano"
