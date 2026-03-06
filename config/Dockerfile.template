@@ -16,7 +16,7 @@ COPY preinstall /opt/preinstall
 
 # DOCKERFILE_COMMANDS_PLACEHOLDER
 
-RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
+RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* /tmp/* /var/tmp/* /var/log/*
 
 COPY scripts/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
