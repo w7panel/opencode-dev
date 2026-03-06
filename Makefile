@@ -39,8 +39,11 @@ check-registries:
 		echo "Error: $(REGISTRIES_CONF) not found"; \
 		exit 1; \
 	fi
-	@if ! grep -q "registry.cdn.w7.cc\|daocloud\|njuedu.cn" "$(REGISTRIES_CONF)" 2>/dev/null; then \
-		echo "Warning: No Chinese mirror configured in $(REGISTRIES_CONF)"; \
+	@# 复制配置到系统目录
+	@cp $(REGISTRIES_CONF) /etc/containers/registries.conf 2>/dev/null || true
+	@# 验证配置是否生效（检查是否有 docker.io 的镜像源重定向）
+	@if ! grep -q "registry.cdn.w7.cc\|daocloud\|nju.edu.cn" /etc/containers/registries.conf 2>/dev/null; then \
+		echo "Warning: No Chinese mirror configured"; \
 	fi
 	@echo "Registries config check passed"
 
@@ -68,7 +71,7 @@ build-local: check-config prepare-dockefile
 	@echo "Image: $(IMAGE)"
 	@(which buildah >/dev/null 2>&1 || (echo "Error: buildah not installed" && exit 1))
 	@buildah login --username $(REGISTRY_USER) --password $(REGISTRY_PASS) $(REGISTRY) 2>/dev/null || true
-	@buildah bud -f Dockerfile -t $(IMAGE) --pull .
+	@buildah bud --squash -f Dockerfile -t $(IMAGE) --pull .
 	@buildah push $(IMAGE)
 	@echo ""
 	@echo "========================================"
@@ -100,7 +103,7 @@ build-k8s: check-config prepare-dockefile
 	@echo "Logging in to registry..."
 	@kubectl exec $(APP)-build -n $(NS) -- buildah login --username $(REGISTRY_USER) --password $(REGISTRY_PASS) $(REGISTRY)
 	@echo "Building..."
-	@kubectl exec $(APP)-build -n $(NS) -- buildah bud --registries-conf /etc/containers/registries.conf --file /workspace/Dockerfile --tag $(IMAGE) --pull /workspace
+	@kubectl exec $(APP)-build -n $(NS) -- buildah bud --squash --registries-conf /etc/containers/registries.conf --file /workspace/Dockerfile --tag $(IMAGE) --pull /workspace
 	@echo "Pushing..."
 	@kubectl exec $(APP)-build -n $(NS) -- buildah push $(IMAGE)
 	@echo ""
