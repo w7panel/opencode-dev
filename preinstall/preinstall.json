@@ -1,73 +1,61 @@
 {
-  "dockerfile": [],
-  "environment": [
-    {
-      "name": "golang",
-      "version": "1.24.0",
-      "url": "https://mirrors.aliyun.com/golang/go1.24.0.linux-amd64.tar.gz",
-      "install": "mkdir -p /opt/tools/bin /opt/tools/go && wget -q $URL -O /tmp/go.tar.gz && tar -C /opt/tools -xzf /tmp/go.tar.gz && rm /tmp/go.tar.gz"
-    },
-    {
-      "name": "node",
-      "version": "20.18.0",
-      "url": "https://registry.npmmirror.com/-/binary/node/v20.18.0/node-v20.18.0-linux-x64.tar.xz",
-      "install": "mkdir -p /opt/tools/bin && wget -q $URL -O /tmp/node.tar.xz && tar -C /opt/tools -xJf /tmp/node.tar.xz --strip-components=1 && rm /tmp/node.tar.xz && npm config set registry https://registry.npmmirror.com"
-    },
-    {
-      "name": "kubectl",
-      "version": "1.31.0",
-      "url": "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl",
-      "install": "wget -q $URL -O /opt/tools/bin/kubectl && chmod +x /opt/tools/bin/kubectl"
-    },
-    {
-      "name": "helm",
-      "version": "3.17.2",
-      "url": "https://mirrors.huaweicloud.com/helm/v3.17.2/helm-v3.17.2-linux-amd64.tar.gz",
-      "install": "wget -q $URL -O /tmp/helm.tar.gz && tar -C /tmp -xzf /tmp/helm.tar.gz linux-amd64/helm && mv /tmp/linux-amd64/helm /opt/tools/bin/helm && rm -rf /tmp/helm.tar.gz /tmp/linux-amd64"
-    },
-    {
-      "name": "gh",
-      "version": "2.63.2",
-      "url": "https://gh-proxy.com/https://github.com/cli/cli/releases/download/v2.63.2/gh_2.63.2_linux_amd64.tar.gz",
-      "install": "wget -q $URL -O /tmp/gh.tar.gz && tar -C /tmp -xzf /tmp/gh.tar.gz && mv /tmp/gh_2.63.2_linux_amd64/bin/gh /opt/tools/bin/gh && rm -rf /tmp/gh.tar.gz /tmp/gh_2.63.2_linux_amd64"
-    },
-    {
-      "name": "opencode-ai",
-      "version": "latest",
-      "url": "https://www.npmjs.com/package/opencode-ai",
-      "install": "npm install --production -g opencode-ai"
-    },
-    {
-      "name": "agent-browser",
-      "version": "latest",
-      "url": "https://www.npmjs.com/package/agent-browser",
-      "install": "npm install --production -g agent-browser"
-    },
-    {
-      "name": "ko",
-      "version": "0.18.1",
-      "url": "https://gh-proxy.com/https://github.com/ko-build/ko/releases/download/v0.18.1/ko_0.18.1_Linux_x86_64.tar.gz",
-      "install": "wget -q $URL -O /tmp/ko.tar.gz && tar -C /opt/tools/bin -xzf /tmp/ko.tar.gz ko && rm /tmp/ko.tar.gz"
-    },
-    {
-      "name": "buildah",
-      "version": "1.37.3",
-      "url": "https://packages.debian.org/bookworm/buildah",
-      "install": "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' buildah || dpkg --configure -a"
-    }
-  ],
-  "opencode": [
-    {
-      "name": "oh-my-opencode",
-      "url": "https://gh-proxy.com/https://github.com/code-yeongyu/oh-my-opencode",
-      "install_doc": "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/refs/heads/master/docs/guide/installation.md",
-      "install": "npm install --production -g oh-my-opencode && oh-my-opencode install --no-tui --claude=no --openai=no --gemini=no --copilot=no || true"
-    },
-    {
-      "name": "superpowers",
-      "url": "https://gh-proxy.com/https://github.com/obra/superpowers",
-      "install_doc": "https://raw.githubusercontent.com/obra/superpowers/refs/heads/main/.opencode/INSTALL.md",
-      "install": "git clone --depth 1 $URL /tmp/superpowers && mkdir -p /opt/preinstall/.config/opencode && cp -r /tmp/superpowers /opt/preinstall/.config/opencode/ && rm -rf /tmp/superpowers"
-    }
-  ]
+    "dockerfile": [],
+    "environment": [
+        {
+            "name": "golang",
+            "version": "1.24.0",
+            "url": "https://mirrors.aliyun.com/golang/go1.24.0.linux-amd64.tar.gz",
+            "install": "mkdir -p /opt/tools/bin /opt/tools/go && wget -q $URL -O /tmp/go.tar.gz && tar -C /opt/tools -xzf /tmp/go.tar.gz && rm /tmp/go.tar.gz"
+        },
+        {
+            "name": "node",
+            "version": "20.18.0",
+            "url": "https://registry.npmmirror.com/-/binary/node/v20.18.0/node-v20.18.0-linux-x64.tar.xz",
+            "install": "mkdir -p /opt/tools/bin && wget -q $URL -O /tmp/node.tar.xz && tar -C /opt/tools -xJf /tmp/node.tar.xz --strip-components=1 && rm /tmp/node.tar.xz && npm config set registry https://registry.npmmirror.com"
+        },
+        {
+            "name": "kubectl",
+            "version": "1.31.0",
+            "url": "https://dl.k8s.io/release/v1.31.0/bin/linux/amd64/kubectl",
+            "install": "wget -q $URL -O /opt/tools/bin/kubectl && chmod +x /opt/tools/bin/kubectl"
+        },
+        {
+            "name": "helm",
+            "version": "3.17.2",
+            "url": "https://mirrors.huaweicloud.com/helm/v3.17.2/helm-v3.17.2-linux-amd64.tar.gz",
+            "install": "wget -q $URL -O /tmp/helm.tar.gz && tar -C /tmp -xzf /tmp/helm.tar.gz linux-amd64/helm && mv /tmp/linux-amd64/helm /opt/tools/bin/helm && rm -rf /tmp/helm.tar.gz /tmp/linux-amd64"
+        },
+        {
+            "name": "opencode-ai",
+            "version": "latest",
+            "url": "https://www.npmjs.com/package/opencode-ai",
+            "install": "npm install --production -g opencode-ai@latest"
+        },
+        {
+            "name": "agent-browser",
+            "version": "latest",
+            "url": "https://www.npmjs.com/package/agent-browser",
+            "install": "npm install --production -g agent-browser"
+        },
+        {
+            "name": "buildah",
+            "version": "1.37.3",
+            "url": "https://packages.debian.org/bookworm/buildah",
+            "install": "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold' buildah || dpkg --configure -a"
+        }
+    ],
+    "opencode": [
+        {
+            "name": "oh-my-opencode",
+            "url": "https://gh-proxy.com/https://github.com/code-yeongyu/oh-my-opencode",
+            "install_doc": "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/refs/heads/master/docs/guide/installation.md",
+            "install": "npm install --production -g oh-my-opencode && oh-my-opencode install --no-tui --claude=no --openai=no --gemini=no --copilot=no || true"
+        },
+        {
+            "name": "superpowers",
+            "url": "https://gh-proxy.com/https://github.com/obra/superpowers",
+            "install_doc": "https://raw.githubusercontent.com/obra/superpowers/refs/heads/main/.opencode/INSTALL.md",
+            "install": "git clone --depth 1 $URL /tmp/superpowers && mkdir -p /opt/preinstall/.config/opencode && cp -r /tmp/superpowers /opt/preinstall/.config/opencode/ && rm -rf /tmp/superpowers"
+        }
+    ]
 }
