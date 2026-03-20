@@ -57,5 +57,9 @@
             "install_doc": "https://raw.githubusercontent.com/obra/superpowers/refs/heads/main/.opencode/INSTALL.md",
             "install": "git clone --depth 1 $URL /tmp/superpowers && mkdir -p /opt/preinstall/.config/opencode && cp -r /tmp/superpowers /opt/preinstall/.config/opencode/ && rm -rf /tmp/superpowers"
         }
-    ]
+    ],
+    "opencode_config": {
+        "$schema": "https://opencode.ai/config.json",
+        "plugin": ["oh-my-opencode"]
+    }
 }
