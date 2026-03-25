@@ -50,9 +50,12 @@ opencode-dev/
 │   ├── k8s-pod.yaml        # K8s Build Pod 模板
 │   └── k8s-deploy.yaml     # K8s Deploy 模板
 ├── preinstall/
-│   └── preinstall.json  # 预装清单
-└── scripts/
-    └── entrypoint.sh   # 启动脚本
+│   ├── preinstall.json      # 预装清单
+│   └── preinstall-opencode.json  # OpenCode 默认配置
+├── scripts/
+│   ├── entrypoint.sh       # 启动脚本
+│   └── generate-dockefile.sh  # Dockerfile 生成脚本
+└── .config/opencode/       # OpenCode 配置（构建时打包）
 ```
 
 ## 预装配置

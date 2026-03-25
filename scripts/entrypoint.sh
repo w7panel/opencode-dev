@@ -3,38 +3,30 @@ set -e
 
 OC_DIR="$HOME/.config/opencode"
 OC_PREINSTALL_DIR="/opt/preinstall/.config/opencode"
+PREINSTALL_OPENCODE="/opt/preinstall/preinstall-opencode.json"
 
-copy_config_files() {
-    [ ! -d "$OC_PREINSTALL_DIR" ] && return
-    mkdir -p "$OC_DIR"
+mkdir -p "$OC_DIR"
+cp -rn "$OC_PREINSTALL_DIR"/* "$OC_DIR/" 2>/dev/null || true
 
-    for file in "$OC_PREINSTALL_DIR"/*.json; do
-        [ -f "$file" ] || continue
-        filename=$(basename "$file")
-
-        if [ "$filename" = "opencode.json" ]; then
-            if [ ! -f "$OC_DIR/$filename" ]; then
-                cp "$file" "$OC_DIR/$filename"
-            else
-                for plugin in $(jq -r '.plugin[]?' "$file" 2>/dev/null); do
-                    if jq -e --arg p "$plugin" '.plugin | index($p) == null' "$OC_DIR/$filename" >/dev/null 2>&1; then
-                        TEMP=$(mktemp)
-                        jq --arg p "$plugin" '.plugin += [$p]' "$OC_DIR/$filename" > "$TEMP" && mv "$TEMP" "$OC_DIR/$filename"
-                    fi
-                done
+if [ -f "$PREINSTALL_OPENCODE" ]; then
+    if [ -f "$OC_DIR/opencode.json" ]; then
+        tmp=$(mktemp)
+        for key in $(jq -r 'keys[]' "$PREINSTALL_OPENCODE" 2>/dev/null); do
+            base_type=$(jq -r ".$key | type" "$OC_DIR/opencode.json" 2>/dev/null)
+            patch_type=$(jq -r ".$key | type" "$PREINSTALL_OPENCODE" 2>/dev/null)
+            
+            if [ "$base_type" = "array" ] && [ "$patch_type" = "array" ]; then
+                jq --argjson a "$(jq ".$key" "$OC_DIR/opencode.json")" --argjson b "$(jq ".$key" "$PREINSTALL_OPENCODE")" \
+                    '($a + $b | unique_by(tostring))' > "$tmp" && mv "$tmp" "$OC_DIR/opencode.json"
+            elif [ "$base_type" = "null" ]; then
+                jq --argjson v "$(jq ".$key" "$PREINSTALL_OPENCODE")" '. * { "'"$key"'": $v }' "$OC_DIR/opencode.json" > "$tmp" && mv "$tmp" "$OC_DIR/opencode.json"
             fi
-        else
-            [ ! -f "$OC_DIR/$filename" ] && cp "$file" "$OC_DIR/$filename"
-        fi
-    done
+        done
+        rm -f "$tmp"
+    else
+        cp "$PREINSTALL_OPENCODE" "$OC_DIR/opencode.json"
+    fi
+fi
 
-    for dir in "$OC_PREINSTALL_DIR"/*/; do
-        [ -d "$dir" ] || continue
-        dirname=$(basename "$dir")
-        [ ! -d "$OC_DIR/$dirname" ] && cp -r "$dir" "$OC_DIR/$dirname"
-    done
-}
-
-copy_config_files
 mkdir -p "$HOME/go"
 exec opencode web --port 4096 --hostname 0.0.0.0

@@ -26,14 +26,6 @@ while IFS='|' read -r url install; do
     [ -n "$install" ] && echo "RUN $(echo "$install" | sed "s|\$URL|$url|g")" >> "$COMMANDS_FILE"
 done <<< "$OC_COMMANDS"
 
-if jq -e '.opencode_config' "$PREINSTALL_JSON" >/dev/null 2>&1; then
-    echo "RUN mkdir -p /opt/preinstall/.config/opencode" >> "$COMMANDS_FILE"
-    OC_CONFIG=$(jq -c '.opencode_config' "$PREINSTALL_JSON" 2>/dev/null)
-    if [ -n "$OC_CONFIG" ] && [ "$OC_CONFIG" != "null" ]; then
-        echo "RUN printf '%s\n' '$OC_CONFIG' > /opt/preinstall/.config/opencode/opencode.json" >> "$COMMANDS_FILE"
-    fi
-fi
-
 if [ -s "$COMMANDS_FILE" ]; then
     while IFS= read -r line || [ -n "$line" ]; do
         if [ "$line" = "# DOCKERFILE_COMMANDS_PLACEHOLDER" ]; then

@@ -54,12 +54,14 @@
         {
             "name": "superpowers",
             "url": "https://gh-proxy.com/https://github.com/obra/superpowers",
-            "install_doc": "https://raw.githubusercontent.com/obra/superpowers/refs/heads/main/.opencode/INSTALL.md",
-            "install": "git clone --depth 1 $URL /tmp/superpowers && mkdir -p /opt/preinstall/.config/opencode && cp -r /tmp/superpowers /opt/preinstall/.config/opencode/ && rm -rf /tmp/superpowers"
+            "install_doc": "先把git代码下载到/opt/preinstall/.config/opencode下，然后把superpowers/.opencode/plugins/superpowers.js复制到/opt/preinstall/.config/opencode/plugins/下，把superpowers/skills/*复制到/opt/preinstall/.config/opencode/skills/superpowers下",
+            "install": "git clone --depth 1 $URL /opt/preinstall/.config/opencode/superpowers && mkdir -p /opt/preinstall/.config/opencode/plugins /opt/preinstall/.config/opencode/skills/superpowers && cp /opt/preinstall/.config/opencode/superpowers/.opencode/plugins/superpowers.js /opt/preinstall/.config/opencode/plugins/ && cp -r /opt/preinstall/.config/opencode/superpowers/skills/* /opt/preinstall/.config/opencode/skills/superpowers/"
+        },
+        {
+            "name": "minimax-skills",
+            "url": "https://gh-proxy.com/https://github.com/MiniMax-AI/skills.git",
+            "install_doc": "git clone https://github.com/MiniMax-AI/skills.git 把skills/*复制到/opt/preinstall/.config/opencode/skills/下",
+            "install": "git clone --depth 1 $URL /opt/preinstall/.config/opencode/minimax-skills && cp -r /opt/preinstall/.config/opencode/minimax-skills/skills/* /opt/preinstall/.config/opencode/skills/"
         }
-    ],
-    "opencode_config": {
-        "$schema": "https://opencode.ai/config.json",
-        "plugin": ["oh-my-opencode"]
-    }
+    ]
 }

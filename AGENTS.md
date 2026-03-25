@@ -141,55 +141,21 @@
 |------|------|------|
 | name | 项目名称 | 是 |
 | url | Git 仓库地址 | 是 |
-| install_doc | 安装文档地址 | 否 |
+| install_doc | 安装说明/文档 | 是 |
 | install | 安装命令（使用 `$URL` 变量） | 是 |
 
-**使用场景**：
-- 安装 OpenCode 技能（如 superpowers、oh-my-opencode）
-- 安装 OpenCode 相关扩展
-
 **规范**：
-1. **禁止使用 RUN**：install 字段只能填写安装命令，禁止使用 RUN、COPY 等 Dockerfile 指令
-2. **脚本自动拼接**：Makefile 生成 Dockerfile 时会自动拼接 `RUN` 前缀
-3. **必须使用 `$URL` 变量**：install 命令中必须使用 `$URL` 表示 url 字段的值
-4. **优先使用 install_doc**：如果有安装文档，读取文档内容提取安装命令
+1. **禁止使用 RUN**：install 字段只能填写安装命令
+2. **必须使用 `$URL` 变量**：install 命令中必须使用 `$URL` 表示 url 字段的值
+3. **install_doc 说明**：用于记录安装步骤，不用于自动解析
 
 **示例**：
 ```json
 {
   "name": "superpowers",
-  "url": "https://ghproxy.net/https://github.com/obra/superpowers",
-  "install_doc": "https://raw.githubusercontent.com/obra/superpowers/refs/heads/main/.opencode/INSTALL.md",
-  "install": "git clone --depth 1 $URL /tmp/superpowers && mkdir -p /opt/preinstall/.config/opencode && cp -r /tmp/superpowers /opt/preinstall/.config/opencode/ && rm -rf /tmp/superpowers"
-}
-```
-
-### opencode 字段
-
-用于安装 OpenCode 技能和扩展。
-
-| 字段 | 说明 | 必填 |
-|------|------|------|
-| name | 项目名称 | 是 |
-| url | Git 仓库地址 | 是 |
-| install_doc | 安装文档地址 | 否 |
-| install | 安装命令（使用 `$URL` 变量） | 是 |
-
-**使用场景**：
-- 安装 OpenCode 技能（如 superpowers、oh-my-opencode）
-- 安装 OpenCode 相关扩展
-
-**规范**：
-1. **必须使用 `$URL` 变量**：install 命令中必须使用 `$URL` 表示 url 字段的值
-2. **优先使用 install_doc**：如果有安装文档，读取文档内容提取安装命令
-
-**示例**：
-```json
-{
-  "name": "superpowers",
-  "url": "https://ghproxy.net/https://github.com/obra/superpowers",
-  "install_doc": "https://raw.githubusercontent.com/obra/superpowers/refs/heads/main/.opencode/INSTALL.md",
-  "install": "RUN git clone --depth 1 $URL /tmp/superpowers && mkdir -p /opt/preinstall/.config/opencode && cp -r /tmp/superpowers /opt/preinstall/.config/opencode/ && rm -rf /tmp/superpowers"
+  "url": "https://gh-proxy.com/https://github.com/obra/superpowers",
+  "install_doc": "先把git代码下载到/opt/preinstall/.config/opencode下，然后把superpowers/.opencode/plugins/superpowers.js复制到/opt/preinstall/.config/opencode/plugins/下，把superpowers/skills/*复制到/opt/preinstall/.config/opencode/skills/superpowers下",
+  "install": "git clone --depth 1 $URL /opt/preinstall/.config/opencode/superpowers && mkdir -p /opt/preinstall/.config/opencode/plugins /opt/preinstall/.config/opencode/skills/superpowers && cp /opt/preinstall/.config/opencode/superpowers/.opencode/plugins/superpowers.js /opt/preinstall/.config/opencode/plugins/ && cp -r /opt/preinstall/.config/opencode/superpowers/skills/* /opt/preinstall/.config/opencode/skills/superpowers/"
 }
 ```
 
@@ -222,10 +188,10 @@
    - `preinstall/` 目录整个 COPY 到镜像的 `/opt/preinstall/`
    - 容器启动时由 entrypoint.sh 复制到 `/home/`
 
-7. **OpenCode Skills 处理**
-   - 复制 `.opencode/skills/` 到 `preinstall/.config/opencode/skills/`
-   - 构建时将此目录 COPY 到镜像的 `/opt/preinstall/.config/opencode/`
-   - 容器启动时复制到 `/home/.config/opencode/`
+7. **OpenCode 配置处理**
+   - `preinstall/preinstall-opencode.json` 作为 OpenCode 默认配置
+   - 启动时合并到 `~/.config/opencode/opencode.json`
+   - 数组字段去重合并，新字段补充，已有字段保留
 
 ## 中国镜像源
 
