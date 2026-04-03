@@ -66,6 +66,12 @@ opencode-dev/
 - **environment**：基础环境工具（Go、Node.js、kubectl 等）
 - **opencode**：OpenCode 生态项目（插件、Skills）
 
+`preinstall/preinstall-opencode.json` 用于保存 OpenCode 默认配置。容器启动时：
+
+- 先把 `/opt/preinstall/.config/opencode/` 复制到 `~/.config/opencode/`
+- 再将 `preinstall-opencode.json` 合并到 `~/.config/opencode/opencode.json`
+- 数组字段去重合并，新字段补充，已有非数组字段保持用户原值
+
 详见 AGENTS.md
 
 ## 部署应用

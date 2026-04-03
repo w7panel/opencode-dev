@@ -6,23 +6,39 @@ OC_PREINSTALL_DIR="/opt/preinstall/.config/opencode"
 PREINSTALL_OPENCODE="/opt/preinstall/preinstall-opencode.json"
 
 mkdir -p "$OC_DIR"
-cp -rn "$OC_PREINSTALL_DIR"/* "$OC_DIR/" 2>/dev/null || true
+
+if [ -d "$OC_PREINSTALL_DIR" ]; then
+    for entry in "$OC_PREINSTALL_DIR"/*; do
+        [ -e "$entry" ] || continue
+        target="$OC_DIR/$(basename "$entry")"
+        [ -e "$target" ] && continue
+        cp -r "$entry" "$OC_DIR/" 2>/dev/null || true
+    done
+fi
 
 if [ -f "$PREINSTALL_OPENCODE" ]; then
     if [ -f "$OC_DIR/opencode.json" ]; then
         tmp=$(mktemp)
-        for key in $(jq -r 'keys[]' "$PREINSTALL_OPENCODE" 2>/dev/null); do
-            base_type=$(jq -r ".$key | type" "$OC_DIR/opencode.json" 2>/dev/null)
-            patch_type=$(jq -r ".$key | type" "$PREINSTALL_OPENCODE" 2>/dev/null)
-            
-            if [ "$base_type" = "array" ] && [ "$patch_type" = "array" ]; then
-                jq --argjson a "$(jq ".$key" "$OC_DIR/opencode.json")" --argjson b "$(jq ".$key" "$PREINSTALL_OPENCODE")" \
-                    '($a + $b | unique_by(tostring))' > "$tmp" && mv "$tmp" "$OC_DIR/opencode.json"
-            elif [ "$base_type" = "null" ]; then
-                jq --argjson v "$(jq ".$key" "$PREINSTALL_OPENCODE")" '. * { "'"$key"'": $v }' "$OC_DIR/opencode.json" > "$tmp" && mv "$tmp" "$OC_DIR/opencode.json"
-            fi
-        done
-        rm -f "$tmp"
+        jq -s '
+            def merge($base; $patch):
+                if ($base | type) == "object" and ($patch | type) == "object" then
+                    reduce ($patch | keys_unsorted[]) as $key ($base;
+                        if has($key) then
+                            .[$key] = merge(.[$key]; $patch[$key])
+                        else
+                            . + {($key): $patch[$key]}
+                        end
+                    )
+                elif ($base | type) == "array" and ($patch | type) == "array" then
+                    reduce ($patch[]) as $item ($base;
+                        if index($item) == null then . + [$item] else . end
+                    )
+                else
+                    $base
+                end;
+            merge(.[0]; .[1])
+        ' "$OC_DIR/opencode.json" "$PREINSTALL_OPENCODE" > "$tmp"
+        mv "$tmp" "$OC_DIR/opencode.json"
     else
         cp "$PREINSTALL_OPENCODE" "$OC_DIR/opencode.json"
     fi
